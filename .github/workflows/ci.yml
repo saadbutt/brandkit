@@ -1,0 +1,51 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: no dependencies to install
+        run: python -c "import sys; print(sys.version)"
+      - name: tests
+        run: python -m unittest discover -s tests -t . -v
+
+  determinism:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: two models, one kit, on every example source
+        run: |
+          for src in examples/source-*.html; do
+            echo "== $src"
+            python -m brandkit.cli verify "$src"
+          done
+
+  reproducible-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: build twice with different models and diff the tokens
+        run: |
+          python -m brandkit.cli build examples/source-acme.html --out out-a --model terse
+          python -m brandkit.cli build examples/source-acme.html --out out-b --model verbose
+          diff -u out-a/kit.css out-b/kit.css
+          diff -u out-a/tokens.csv out-b/tokens.csv
