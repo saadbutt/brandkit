@@ -8,9 +8,9 @@ determinism test is what proves it.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
 
-Draft = Dict[str, Any]
+Draft = dict[str, Any]
 
 
 class ModelAdapter(Protocol):

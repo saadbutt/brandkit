@@ -10,12 +10,11 @@ import argparse
 import json
 import pathlib
 import sys
-from typing import List, Optional
 
 from .assemble import assemble_kit
 from .binder import bind, parse_tree
 from .measure import measure_html
-from .models import StubModel, TERSE, VERBOSE
+from .models import TERSE, VERBOSE, StubModel
 from .registry import default_registry
 from .render import design_md, kit_css, kit_json, tokens_csv
 
@@ -59,7 +58,7 @@ def _verify(source: pathlib.Path) -> int:
     """Two models, one kit. Exits non-zero if they disagree."""
     metrics = measure_html(source.read_text(encoding="utf-8"))
     payload = json.dumps(metrics.to_dict(), sort_keys=True)
-    prints: List[str] = []
+    prints: list[str] = []
     for style in (TERSE, VERBOSE):
         model = StubModel(style)
         kit = assemble_kit(
@@ -75,7 +74,7 @@ def _verify(source: pathlib.Path) -> int:
     return 0
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="brandkit")
     sub = parser.add_subparsers(dest="cmd", required=True)
 

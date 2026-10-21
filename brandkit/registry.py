@@ -10,8 +10,8 @@ means adding entries here, not forking a template or touching assemble_kit.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Tuple
 
 Geometry = str  # "band" | "row" | "stack" | "split" | "grid" | "card"
 
@@ -35,8 +35,8 @@ class Block:
 
     id: str
     geometry: Geometry
-    required: Tuple[str, ...] = ()
-    optional: Tuple[str, ...] = ()
+    required: tuple[str, ...] = ()
+    optional: tuple[str, ...] = ()
     repeat: str = REPEAT_ONCE
 
     def __post_init__(self) -> None:
@@ -53,7 +53,7 @@ class Block:
             )
 
     @property
-    def slots(self) -> Tuple[str, ...]:
+    def slots(self) -> tuple[str, ...]:
         return tuple(self.required) + tuple(self.optional)
 
 
@@ -69,7 +69,7 @@ class Registry:
     """Central, ordered collection of blocks."""
 
     def __init__(self, blocks: Iterable[Block] = ()) -> None:
-        self._blocks: Dict[str, Block] = {}
+        self._blocks: dict[str, Block] = {}
         for block in blocks:
             self.register(block)
 
@@ -87,15 +87,15 @@ class Registry:
     def has(self, block_id: str) -> bool:
         return block_id in self._blocks
 
-    def ids(self) -> List[str]:
+    def ids(self) -> list[str]:
         return list(self._blocks)
 
     def __len__(self) -> int:
         return len(self._blocks)
 
-    def validate_tree(self, tree: List[str]) -> None:
+    def validate_tree(self, tree: list[str]) -> None:
         """Reject a tree that names an unregistered id or over-repeats a block."""
-        seen: Dict[str, int] = {}
+        seen: dict[str, int] = {}
         for block_id in tree:
             block = self.get(block_id)  # raises on unknown
             seen[block_id] = seen.get(block_id, 0) + 1
@@ -104,7 +104,7 @@ class Registry:
                     f"{block_id}: repeat rule is {REPEAT_ONCE}, appears {seen[block_id]} times"
                 )
 
-    def slot_map(self, tree: List[str]) -> Dict[str, Tuple[str, ...]]:
+    def slot_map(self, tree: list[str]) -> dict[str, tuple[str, ...]]:
         """Slots each block in this tree can accept. Drives the DESIGN.md slot map."""
         self.validate_tree(tree)
         return {block_id: self.get(block_id).slots for block_id in dict.fromkeys(tree)}
@@ -115,7 +115,7 @@ def default_registry() -> Registry:
     return Registry(_SEED)
 
 
-_SEED: Tuple[Block, ...] = (
+_SEED: tuple[Block, ...] = (
     Block("promo-bar", "band", ("helpers",), repeat=REPEAT_ONCE),
     Block("nav-bar", "band", ("wordmark",), ("links", "ctas"), REPEAT_ONCE),
     Block("hero-stack", "stack", ("h1",), ("leads", "ctas", "helpers"), REPEAT_ONCE),

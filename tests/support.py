@@ -9,31 +9,31 @@ from __future__ import annotations
 
 import json
 import pathlib
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from brandkit.assemble import assemble_kit
 from brandkit.binder import parse_tree
 from brandkit.measure import Metrics, measure_html
-from brandkit.models import StubModel, TERSE, VERBOSE
+from brandkit.models import TERSE, VERBOSE, StubModel
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 EXAMPLES = ROOT / "examples"
 SKELETONS = ROOT / "skeletons"
 
-SOURCE_NAMES: Tuple[str, ...] = (
+SOURCE_NAMES: tuple[str, ...] = (
     "source-acme.html",
     "source-northwind.html",
     "source-salt.html",
 )
 
-STYLES: Tuple[str, ...] = (TERSE, VERBOSE)
+STYLES: tuple[str, ...] = (TERSE, VERBOSE)
 
 
 def source_text(name: str) -> str:
     return (EXAMPLES / name).read_text(encoding="utf-8")
 
 
-def sources() -> List[Tuple[str, str]]:
+def sources() -> list[tuple[str, str]]:
     return [(name, source_text(name)) for name in SOURCE_NAMES]
 
 
@@ -41,7 +41,7 @@ def metrics_for(name: str) -> Metrics:
     return measure_html(source_text(name))
 
 
-def kit_for(name: str, style: str = TERSE) -> Dict[str, Any]:
+def kit_for(name: str, style: str = TERSE) -> dict[str, Any]:
     metrics = metrics_for(name)
     model = StubModel(style)
     draft = model.draft(json.dumps(metrics.to_dict(), sort_keys=True))
@@ -51,7 +51,7 @@ def kit_for(name: str, style: str = TERSE) -> Dict[str, Any]:
     )
 
 
-def skeletons() -> List[Tuple[str, str, List[str]]]:
+def skeletons() -> list[tuple[str, str, list[str]]]:
     """(name, layout html, tree) for every skeleton on disk."""
     out = []
     for path in sorted(p for p in SKELETONS.iterdir() if p.is_dir()):

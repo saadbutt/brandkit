@@ -1,0 +1,14 @@
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "SIM", "RUF", "FURB"]
+# SIM108: collapsing an if/else into a ternary helps when both branches do the
+# same kind of thing. Here they don't (replace-in-place vs. prepend), and the
+# ternary reads worse than the branches it would replace.
+ignore = ["SIM108"]
+
+[tool.ruff.lint.per-file-ignores]
+# Inline HTML fixtures, not code -- wrapping would mangle the literal for no benefit.
+"tests/test_new_block.py" = ["E501"]

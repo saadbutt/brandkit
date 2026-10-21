@@ -17,9 +17,8 @@ from brandkit.registry import (
 class TestBlock(unittest.TestCase):
     def test_id_must_be_kebab_case(self):
         for bad in ("HeroStack", "hero_stack", "-hero", "hero-", "hero--stack", ""):
-            with self.subTest(block_id=bad):
-                with self.assertRaises(RegistryError):
-                    Block(bad, "band")
+            with self.subTest(block_id=bad), self.assertRaises(RegistryError):
+                Block(bad, "band")
 
     def test_unknown_repeat_rule_is_rejected(self):
         with self.assertRaises(RegistryError):

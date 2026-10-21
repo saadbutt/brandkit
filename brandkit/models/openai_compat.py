@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 import urllib.request
-from typing import Any, Dict
+from typing import Any
 
 from ..schema import COLOR_ROLES, COPY_LISTS, TYPE_STEPS
 
@@ -59,7 +59,7 @@ class OpenAICompatModel:
         self.provider = provider
         self.timeout = timeout
 
-    def draft(self, metrics_json: str) -> Dict[str, Any]:
+    def draft(self, metrics_json: str) -> dict[str, Any]:
         prompt = TEMPLATE.format(
             metrics=metrics_json,
             roles=list(COLOR_ROLES),

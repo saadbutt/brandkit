@@ -12,7 +12,7 @@ in assemble_kit, not in the prompt.
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 TERSE = "terse"
 VERBOSE = "verbose"
@@ -29,12 +29,12 @@ class StubModel:
         self.label = f"Stub model ({style})"
         self.provider = "offline"
 
-    def draft(self, metrics_json: str) -> Dict[str, Any]:
+    def draft(self, metrics_json: str) -> dict[str, Any]:
         m = json.loads(metrics_json)
-        colors: List[str] = m.get("colors", [])
-        fonts: List[str] = m.get("fonts", [])
-        sizes: List[float] = m.get("type_scale_px", [])
-        text: Dict[str, List[str]] = m.get("text", {})
+        colors: list[str] = m.get("colors", [])
+        fonts: list[str] = m.get("fonts", [])
+        sizes: list[float] = m.get("type_scale_px", [])
+        text: dict[str, list[str]] = m.get("text", {})
 
         if self.style == TERSE:
             return {
@@ -70,7 +70,7 @@ class StubModel:
         }
 
 
-def _at(values: List[Any], index: int) -> Any:
+def _at(values: list[Any], index: int) -> Any:
     if not values:
         return None
     return values[min(index, len(values) - 1)]

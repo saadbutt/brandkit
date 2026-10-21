@@ -11,21 +11,20 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
-from typing import Dict, List, Tuple
 
 _HEX = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b")
 _RGB = re.compile(r"rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)")
 # Quotes are kept in the capture and stripped per family below. Excluding them
 # here silently dropped every quoted declaration, which is a quiet way to
 # measure the wrong typeface.
-_FONT_FAMILY = re.compile(r"font-family\s*:\s*([^;}]+)", re.I)
-_FONT_SIZE = re.compile(r"font-size\s*:\s*([\d.]+)(px|rem|em)", re.I)
-_RADIUS = re.compile(r"border-radius\s*:\s*([^;}]+)", re.I)
-_SHADOW = re.compile(r"box-shadow\s*:\s*([^;}]+)", re.I)
-_SPACING = re.compile(r"(?:margin|padding)[a-z-]*\s*:\s*([^;}]+)", re.I)
-_FACE_SRC = re.compile(r"@font-face\s*{[^}]*?src\s*:\s*([^;}]+)", re.I | re.S)
-_FACE_FAM = re.compile(r"@font-face\s*{[^}]*?font-family\s*:\s*([^;}]+)", re.I | re.S)
-_RULE = re.compile(r"([^{}]+)\{([^{}]*)\}", re.S)
+_FONT_FAMILY = re.compile(r"font-family\s*:\s*([^;}]+)", re.IGNORECASE)
+_FONT_SIZE = re.compile(r"font-size\s*:\s*([\d.]+)(px|rem|em)", re.IGNORECASE)
+_RADIUS = re.compile(r"border-radius\s*:\s*([^;}]+)", re.IGNORECASE)
+_SHADOW = re.compile(r"box-shadow\s*:\s*([^;}]+)", re.IGNORECASE)
+_SPACING = re.compile(r"(?:margin|padding)[a-z-]*\s*:\s*([^;}]+)", re.IGNORECASE)
+_FACE_SRC = re.compile(r"@font-face\s*{[^}]*?src\s*:\s*([^;}]+)", re.IGNORECASE | re.DOTALL)
+_FACE_FAM = re.compile(r"@font-face\s*{[^}]*?font-family\s*:\s*([^;}]+)", re.IGNORECASE | re.DOTALL)
+_RULE = re.compile(r"([^{}]+)\{([^{}]*)\}", re.DOTALL)
 _TAG_SELECTOR = re.compile(r"^[a-z][a-z0-9]*$")
 
 
@@ -33,18 +32,18 @@ _TAG_SELECTOR = re.compile(r"^[a-z][a-z0-9]*$")
 class Metrics:
     """Measured facts about one source page."""
 
-    colors: List[str] = field(default_factory=list)          # most used first
-    color_counts: Dict[str, int] = field(default_factory=dict)
-    fonts: List[str] = field(default_factory=list)           # families actually referenced
-    faces: List[Dict[str, str]] = field(default_factory=list)  # {family, src}
-    type_scale_px: List[float] = field(default_factory=list)  # descending
-    sizes_by_tag: Dict[str, float] = field(default_factory=dict)  # h1/h2/p/... -> px
-    radii: List[str] = field(default_factory=list)
-    shadows: List[str] = field(default_factory=list)
-    spacing: List[str] = field(default_factory=list)
-    text: Dict[str, List[str]] = field(default_factory=dict)  # h1 / h2 / p / a / button
+    colors: list[str] = field(default_factory=list)          # most used first
+    color_counts: dict[str, int] = field(default_factory=dict)
+    fonts: list[str] = field(default_factory=list)           # families actually referenced
+    faces: list[dict[str, str]] = field(default_factory=list)  # {family, src}
+    type_scale_px: list[float] = field(default_factory=list)  # descending
+    sizes_by_tag: dict[str, float] = field(default_factory=dict)  # h1/h2/p/... -> px
+    radii: list[str] = field(default_factory=list)
+    shadows: list[str] = field(default_factory=list)
+    spacing: list[str] = field(default_factory=list)
+    text: dict[str, list[str]] = field(default_factory=dict)  # h1 / h2 / p / a / button
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "colors": self.colors,
             "color_counts": self.color_counts,
@@ -64,19 +63,19 @@ class _Collector(HTMLParser):
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self.css_chunks: List[str] = []
-        self.stylesheet_hrefs: List[str] = []
-        self.text: Dict[str, List[str]] = {
+        self.css_chunks: list[str] = []
+        self.stylesheet_hrefs: list[str] = []
+        self.text: dict[str, list[str]] = {
             "h1": [], "h2": [], "p": [], "a": [], "button": [],
         }
-        self._stack: List[str] = []
+        self._stack: list[str] = []
         self._in_style = False
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == "style":
             self._in_style = True
-        if "style" in a and a["style"]:
+        if a.get("style"):
             self.css_chunks.append("{" + a["style"] + "}")
         if tag == "link" and a.get("rel", "").lower() == "stylesheet" and a.get("href"):
             self.stylesheet_hrefs.append(a["href"])
@@ -109,11 +108,12 @@ def _norm_hex(value: str) -> str:
 
 
 def _rgb_to_hex(r: int, g: int, b: int) -> str:
-    clamp = lambda n: max(0, min(255, n))
-    return "#{:02x}{:02x}{:02x}".format(clamp(r), clamp(g), clamp(b))
+    def clamp(n):
+        return max(0, min(255, n))
+    return f"#{clamp(r):02x}{clamp(g):02x}{clamp(b):02x}"
 
 
-def _families(raw: str) -> List[str]:
+def _families(raw: str) -> list[str]:
     out = []
     for part in raw.split(","):
         name = part.strip().strip("'\"")
@@ -149,7 +149,7 @@ def measure_html(source: str) -> Metrics:
     # Ties break on the hex itself so ordering never depends on dict insertion.
     colors = [c for c, _ in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
 
-    fams: List[str] = []
+    fams: list[str] = []
     for m in _FONT_FAMILY.finditer(css):
         for name in _families(m.group(1)):
             if name not in fams:
@@ -160,7 +160,7 @@ def measure_html(source: str) -> Metrics:
             if name and name not in fams:
                 fams.append(name)
 
-    faces: List[Dict[str, str]] = []
+    faces: list[dict[str, str]] = []
     seen_faces = set()
     for fam, src in zip(_FACE_FAM.findall(css), _FACE_SRC.findall(css)):
         face = {
@@ -192,14 +192,14 @@ def measure_html(source: str) -> Metrics:
     )
 
 
-def _sizes_by_tag(css: str) -> Dict[str, float]:
+def _sizes_by_tag(css: str) -> dict[str, float]:
     """font-size per bare tag selector, so a role can be anchored to real markup.
 
     This is what stops the type scale being assigned by position. A page whose
     p rule says 17px has a 17px body, whether or not 17px happens to be the
     fifth largest number in the stylesheet. Later rules win, as in CSS.
     """
-    out: Dict[str, float] = {}
+    out: dict[str, float] = {}
     for selector_group, body in _RULE.findall(css):
         match = _FONT_SIZE.search(body)
         if not match:
@@ -212,8 +212,8 @@ def _sizes_by_tag(css: str) -> Dict[str, float]:
     return out
 
 
-def _uniq(values) -> List[str]:
-    out: List[str] = []
+def _uniq(values) -> list[str]:
+    out: list[str] = []
     for v in values:
         v = v.strip()
         if v and v not in out:

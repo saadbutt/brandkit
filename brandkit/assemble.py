@@ -16,14 +16,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 from .measure import Metrics
 from .schema import (
-    COLOR_ROLES,
     COPY_LISTS,
-    ELEVATION_KEYS,
-    RADIUS_KEYS,
     TYPE_STEPS,
     validate_draft,
 )
@@ -49,7 +46,7 @@ def assemble_kit(
     model_id: str = "",
     model_label: str = "",
     provider: str = "",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build the kit. The single writer.
 
     draft is a proposal and is validated first. metrics are facts and win every
@@ -59,7 +56,7 @@ def assemble_kit(
     if not metrics.colors:
         raise AssemblyError("source yielded no colours; nothing to build a kit from")
 
-    kit: Dict[str, Any] = {}
+    kit: dict[str, Any] = {}
     kit["colors"] = _colors(clean.get("colors", {}), metrics)
     kit["fonts"] = _fonts(clean.get("fonts", {}), metrics)
     kit["type_scale"] = _type_scale(clean.get("type_scale", {}), metrics)
@@ -75,7 +72,7 @@ def assemble_kit(
 _TOKEN_KEYS = ("colors", "fonts", "type_scale", "radius", "elevation", "spacing")
 
 
-def fingerprint(kit: Dict[str, Any]) -> str:
+def fingerprint(kit: dict[str, Any]) -> str:
     """Stable hash of the design tokens: the part that must not drift.
 
     Copy and the model block are excluded on purpose. Two models may write
@@ -97,12 +94,12 @@ def _chroma(hexv: str) -> float:
     return max(r, g, b) - min(r, g, b)
 
 
-def _pick(palette: List[str], index: int) -> str:
+def _pick(palette: list[str], index: int) -> str:
     """Deterministic choice from the measured palette, never out of range."""
     return palette[index % len(palette)]
 
 
-def _colors(_proposed: Dict[str, str], metrics: Metrics) -> Dict[str, str]:
+def _colors(_proposed: dict[str, str], metrics: Metrics) -> dict[str, str]:
     """Roles are derived from the measurements, not chosen by the model.
 
     This is the decision the whole repo turns on. Role assignment is a function
@@ -119,8 +116,8 @@ def _colors(_proposed: Dict[str, str], metrics: Metrics) -> Dict[str, str]:
     darkest = by_light[0]
     # Primary is the most saturated colour that is neither paper nor ink.
     mid = [c for c in palette if 0.08 < _luminance(c) < 0.92] or palette
-    primary = sorted(mid, key=lambda c: (-_chroma(c), c))[0]
-    neutrals = [c for c in by_light if c not in (primary,)]
+    primary = min(mid, key=lambda c: (-_chroma(c), c))
+    neutrals = [c for c in by_light if c != primary]
 
     def neutral(position: float) -> str:
         if not neutrals:
@@ -149,7 +146,7 @@ def _colors(_proposed: Dict[str, str], metrics: Metrics) -> Dict[str, str]:
     }
 
 
-def _fonts(_proposed: Dict[str, Any], metrics: Metrics) -> Dict[str, Any]:
+def _fonts(_proposed: dict[str, Any], metrics: Metrics) -> dict[str, Any]:
     """The family the page actually loads. A model cannot assert a typeface."""
     family = metrics.fonts[0] if metrics.fonts else "system-ui"
     return {"family": family, "faces": list(metrics.faces)}
@@ -158,7 +155,7 @@ def _fonts(_proposed: Dict[str, Any], metrics: Metrics) -> Dict[str, Any]:
 _RAMP = ("display", "heading-md", "heading-sm", "subtitle", "body", "eyebrow", "meta")
 
 
-def _type_scale(_proposed: Dict[str, float], metrics: Metrics) -> Dict[str, float]:
+def _type_scale(_proposed: dict[str, float], metrics: Metrics) -> dict[str, float]:
     """Anchor the scale to real markup, then fill from the remaining sizes.
 
     Assigning sizes by position is the obvious implementation and it is wrong:
@@ -198,7 +195,7 @@ def _type_scale(_proposed: Dict[str, float], metrics: Metrics) -> Dict[str, floa
     mid = _pad_head(upper, 3, body)          # heading-md, heading-sm, subtitle
     small = _pad_tail(lower, 2, body)        # eyebrow, meta
 
-    ramp = [display] + mid + [body] + small
+    ramp = [display, *mid, body, *small]
     scale = dict(zip(_RAMP, ramp))
     # Button text is not part of a descending ramp. It is the step just under
     # body, which is where every one of these sources actually puts it.
@@ -206,7 +203,7 @@ def _type_scale(_proposed: Dict[str, float], metrics: Metrics) -> Dict[str, floa
     return {step: round(float(scale[step]), 2) for step in TYPE_STEPS}
 
 
-def _pad_head(values: List[float], count: int, pad: float) -> List[float]:
+def _pad_head(values: list[float], count: int, pad: float) -> list[float]:
     """First `count` values, largest first, padded toward `pad`."""
     out = list(values[:count])
     while len(out) < count:
@@ -214,7 +211,7 @@ def _pad_head(values: List[float], count: int, pad: float) -> List[float]:
     return out
 
 
-def _pad_tail(values: List[float], count: int, pad: float) -> List[float]:
+def _pad_tail(values: list[float], count: int, pad: float) -> list[float]:
     """Last `count` values, so the small end of the scale stays small."""
     out = list(values[-count:]) if values else []
     while len(out) < count:
@@ -222,7 +219,7 @@ def _pad_tail(values: List[float], count: int, pad: float) -> List[float]:
     return out
 
 
-def _radius(_proposed: Dict[str, str], metrics: Metrics) -> Dict[str, str]:
+def _radius(_proposed: dict[str, str], metrics: Metrics) -> dict[str, str]:
     if not metrics.radii:
         return dict(_DEFAULT_RADIUS)
     ordered = sorted(metrics.radii, key=lambda r: (_radius_px(r), r))
@@ -236,7 +233,7 @@ def _radius_px(value: str) -> float:
     return 9999.0 if "%" in value or "full" in value else 0.0
 
 
-def _elevation(_proposed: Dict[str, str], metrics: Metrics) -> Dict[str, str]:
+def _elevation(_proposed: dict[str, str], metrics: Metrics) -> dict[str, str]:
     shadows = sorted(metrics.shadows)
     return {
         "card": "raised" if shadows else "flat",
@@ -245,11 +242,11 @@ def _elevation(_proposed: Dict[str, str], metrics: Metrics) -> Dict[str, str]:
     }
 
 
-def _spacing(_proposed: List[str], metrics: Metrics) -> List[str]:
+def _spacing(_proposed: list[str], metrics: Metrics) -> list[str]:
     return sorted(set(metrics.spacing))
 
 
-def _copy(proposed: Dict[str, List[str]], metrics: Metrics) -> Dict[str, List[str]]:
+def _copy(proposed: dict[str, list[str]], metrics: Metrics) -> dict[str, list[str]]:
     """Copy is the one place a model earns its keep, so it is allowed through.
 
     It is deliberately outside the token fingerprint: two models may write
@@ -270,7 +267,7 @@ def _copy(proposed: Dict[str, List[str]], metrics: Metrics) -> Dict[str, List[st
         "crumbs": [],
         "fields": [],
     }
-    out: Dict[str, List[str]] = {}
+    out: dict[str, list[str]] = {}
     for key in COPY_LISTS:
         value = proposed.get(key)
         out[key] = list(value) if value else list(fallback.get(key, []))

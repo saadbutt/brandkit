@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 from .registry import Registry
 
@@ -23,13 +23,13 @@ _CSS_VAR = {
 }
 
 
-def kit_json(kit: Dict[str, Any]) -> str:
+def kit_json(kit: dict[str, Any]) -> str:
     return json.dumps(kit, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
-def kit_css(kit: Dict[str, Any]) -> str:
+def kit_css(kit: dict[str, Any]) -> str:
     """Writes :root. This is what every layout-base.html actually consumes."""
-    lines: List[str] = []
+    lines: list[str] = []
     for face in kit["fonts"]["faces"]:
         lines.append("@font-face {")
         lines.append(f"  font-family: '{face['family']}';")
@@ -65,7 +65,7 @@ def _radius(value: str) -> str:
     return value
 
 
-def tokens_csv(kit: Dict[str, Any]) -> str:
+def tokens_csv(kit: dict[str, Any]) -> str:
     """Frappe Token Manager shape: Color and Font rows."""
     buf = io.StringIO()
     writer = csv.writer(buf, lineterminator="\n")
@@ -77,9 +77,9 @@ def tokens_csv(kit: Dict[str, Any]) -> str:
     return buf.getvalue()
 
 
-def design_md(kit: Dict[str, Any], registry: Registry, tree: List[str]) -> str:
+def design_md(kit: dict[str, Any], registry: Registry, tree: list[str]) -> str:
     """DESIGN.md, rendered from the kit. Same source of truth as kit.css."""
-    out: List[str] = ["# DESIGN", ""]
+    out: list[str] = ["# DESIGN", ""]
     out.append(f"Fingerprint `{kit['fingerprint']}`")
     model = kit.get("model", {})
     if model.get("label") or model.get("id"):

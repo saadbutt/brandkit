@@ -13,7 +13,7 @@ import json
 import unittest
 
 from brandkit.assemble import assemble_kit
-from brandkit.models import StubModel, TERSE, VERBOSE
+from brandkit.models import TERSE, VERBOSE, StubModel
 from brandkit.render import kit_css, kit_json, tokens_csv
 from tests.support import SOURCE_NAMES, STYLES, metrics_for
 

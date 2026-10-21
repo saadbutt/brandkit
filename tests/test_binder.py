@@ -11,7 +11,7 @@ from __future__ import annotations
 import unittest
 
 from brandkit.binder import BindError, audit_skeleton, bind, check, parse_tree
-from brandkit.registry import Block, default_registry
+from brandkit.registry import default_registry
 from brandkit.render import kit_css
 from tests.support import SOURCE_NAMES, kit_for, skeletons
 
@@ -103,7 +103,7 @@ class TestBind(unittest.TestCase):
         self.assertEqual(once, twice)
 
     def test_a_different_source_repaints_the_same_skeleton(self):
-        name, html, tree = skeletons()[0]
+        _name, html, tree = skeletons()[0]
         seen = set()
         for source in SOURCE_NAMES:
             kit = kit_for(source)
@@ -129,7 +129,7 @@ class TestBind(unittest.TestCase):
 
     def test_repeated_bands_receive_successive_copy(self):
         """Three card-rows must not all say the same thing."""
-        name, html, tree = skeletons()[1]
+        _name, html, tree = skeletons()[1]
         kit = dict(self.kit)
         kit["copy"] = dict(kit["copy"], h2s=["First", "Second", "Third", "Fourth"])
         painted = bind(html, kit, tree, self.registry, self.css)

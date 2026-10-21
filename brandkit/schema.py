@@ -14,30 +14,30 @@ is trusted against a measured fact.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 # Colour roles the kit paints into :root. The draft assigns measured hexes to
 # these roles. It does not get to invent the hexes themselves.
-COLOR_ROLES: Tuple[str, ...] = (
+COLOR_ROLES: tuple[str, ...] = (
     "canvas", "canvas-warm", "hairline", "hairline-soft", "surface-cool",
     "scrim", "footer", "ink", "ink-soft", "graphite", "slate", "mute",
     "stone", "ash", "primary", "on-primary",
 )
 
-TYPE_STEPS: Tuple[str, ...] = (
+TYPE_STEPS: tuple[str, ...] = (
     "display", "heading-md", "heading-sm", "subtitle", "body", "eyebrow",
     "meta", "button",
 )
 
-COPY_LISTS: Tuple[str, ...] = (
+COPY_LISTS: tuple[str, ...] = (
     "h1", "h2s", "leads", "bodies", "ctas", "wordmark", "links", "helpers",
     "crumbs", "fields",
 )
 
-RADIUS_KEYS: Tuple[str, ...] = ("cta", "card")
-ELEVATION_KEYS: Tuple[str, ...] = ("card", "featured", "shadow")
+RADIUS_KEYS: tuple[str, ...] = ("cta", "card")
+ELEVATION_KEYS: tuple[str, ...] = ("card", "featured", "shadow")
 
-_TOP_LEVEL: Tuple[str, ...] = (
+_TOP_LEVEL: tuple[str, ...] = (
     "colors", "fonts", "type_scale", "radius", "elevation", "spacing", "copy",
 )
 
@@ -46,7 +46,7 @@ class SchemaError(ValueError):
     """Raised when a draft violates the schema. Never swallowed."""
 
 
-def validate_draft(draft: Any) -> Dict[str, Any]:
+def validate_draft(draft: Any) -> dict[str, Any]:
     """Validate and normalise a model draft. Raises SchemaError on any violation.
 
     Returns a new dict. The input is never mutated, so a caller holding the
@@ -59,7 +59,7 @@ def validate_draft(draft: Any) -> Dict[str, Any]:
     if unknown:
         raise SchemaError(f"unknown top-level key(s): {unknown}")
 
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     out["colors"] = _map_of_strings(draft.get("colors", {}), COLOR_ROLES, "colors")
     out["fonts"] = _fonts(draft.get("fonts", {}))
     out["type_scale"] = _type_scale(draft.get("type_scale", {}))
@@ -72,13 +72,13 @@ def validate_draft(draft: Any) -> Dict[str, Any]:
     return out
 
 
-def _map_of_strings(value: Any, allowed: Tuple[str, ...], where: str) -> Dict[str, str]:
+def _map_of_strings(value: Any, allowed: tuple[str, ...], where: str) -> dict[str, str]:
     if not isinstance(value, dict):
         raise SchemaError(f"{where} must be an object, got {type(value).__name__}")
     unknown = sorted(set(value) - set(allowed))
     if unknown:
         raise SchemaError(f"{where}: unknown key(s) {unknown}")
-    out: Dict[str, str] = {}
+    out: dict[str, str] = {}
     for key in allowed:
         if key in value:
             v = value[key]
@@ -90,13 +90,13 @@ def _map_of_strings(value: Any, allowed: Tuple[str, ...], where: str) -> Dict[st
     return out
 
 
-def _fonts(value: Any) -> Dict[str, Any]:
+def _fonts(value: Any) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise SchemaError(f"fonts must be an object, got {type(value).__name__}")
     unknown = sorted(set(value) - {"family", "faces"})
     if unknown:
         raise SchemaError(f"fonts: unknown key(s) {unknown}")
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     if "family" in value:
         if not isinstance(value["family"], str) or not value["family"].strip():
             raise SchemaError("fonts.family must be a non-empty string")
@@ -118,13 +118,13 @@ def _fonts(value: Any) -> Dict[str, Any]:
     return out
 
 
-def _type_scale(value: Any) -> Dict[str, float]:
+def _type_scale(value: Any) -> dict[str, float]:
     if not isinstance(value, dict):
         raise SchemaError(f"type_scale must be an object, got {type(value).__name__}")
     unknown = sorted(set(value) - set(TYPE_STEPS))
     if unknown:
         raise SchemaError(f"type_scale: unknown key(s) {unknown}")
-    out: Dict[str, float] = {}
+    out: dict[str, float] = {}
     for step in TYPE_STEPS:
         if step not in value:
             continue
@@ -137,10 +137,10 @@ def _type_scale(value: Any) -> Dict[str, float]:
     return out
 
 
-def _string_list(value: Any, where: str) -> List[str]:
+def _string_list(value: Any, where: str) -> list[str]:
     if not isinstance(value, list):
         raise SchemaError(f"{where} must be a list, got {type(value).__name__}")
-    out: List[str] = []
+    out: list[str] = []
     for i, item in enumerate(value):
         if not isinstance(item, str):
             raise SchemaError(f"{where}[{i}] must be a string, got {type(item).__name__}")
@@ -150,7 +150,7 @@ def _string_list(value: Any, where: str) -> List[str]:
     return out
 
 
-def _copy(value: Any) -> Dict[str, List[str]]:
+def _copy(value: Any) -> dict[str, list[str]]:
     if not isinstance(value, dict):
         raise SchemaError(f"copy must be an object, got {type(value).__name__}")
     unknown = sorted(set(value) - set(COPY_LISTS))

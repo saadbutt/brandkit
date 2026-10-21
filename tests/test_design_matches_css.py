@@ -15,9 +15,11 @@ from brandkit.registry import default_registry
 from brandkit.render import design_md, kit_css, kit_json, tokens_csv
 from tests.support import SOURCE_NAMES, kit_for, skeletons
 
-_VAR = re.compile(r"^\s*(--[a-z0-9-]+):\s*(.+?);\s*$", re.M)
-_MD_COLOR_ROW = re.compile(r"^\|\s*([a-z-]+)\s*\|\s*`(#[0-9a-f]{6})`\s*\|\s*`(--[a-z-]+)`\s*\|", re.M)
-_MD_SIZE_ROW = re.compile(r"^\|\s*([a-z-]+)\s*\|\s*(\d+(?:\.\d+)?)px\s*\|", re.M)
+_VAR = re.compile(r"^\s*(--[a-z0-9-]+):\s*(.+?);\s*$", re.MULTILINE)
+_MD_COLOR_ROW = re.compile(
+    r"^\|\s*([a-z-]+)\s*\|\s*`(#[0-9a-f]{6})`\s*\|\s*`(--[a-z-]+)`\s*\|", re.MULTILINE
+)
+_MD_SIZE_ROW = re.compile(r"^\|\s*([a-z-]+)\s*\|\s*(\d+(?:\.\d+)?)px\s*\|", re.MULTILINE)
 
 
 def _css_vars(css: str):

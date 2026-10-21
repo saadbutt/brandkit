@@ -14,9 +14,8 @@ from brandkit.schema import SchemaError, validate_draft
 class TestValidateDraft(unittest.TestCase):
     def test_non_object_draft_is_rejected(self):
         for bad in ("{}", 7, None, ["colors"]):
-            with self.subTest(draft=bad):
-                with self.assertRaises(SchemaError):
-                    validate_draft(bad)
+            with self.subTest(draft=bad), self.assertRaises(SchemaError):
+                validate_draft(bad)
 
     def test_unknown_top_level_key_is_rejected(self):
         with self.assertRaisesRegex(SchemaError, "unknown top-level"):
@@ -49,9 +48,8 @@ class TestValidateDraft(unittest.TestCase):
 
     def test_non_positive_size_is_rejected(self):
         for bad in (0, -16):
-            with self.subTest(size=bad):
-                with self.assertRaises(SchemaError):
-                    validate_draft({"type_scale": {"display": bad}})
+            with self.subTest(size=bad), self.assertRaises(SchemaError):
+                validate_draft({"type_scale": {"display": bad}})
 
     def test_unknown_copy_list_is_rejected(self):
         with self.assertRaisesRegex(SchemaError, "copy: unknown key"):

@@ -10,7 +10,7 @@ from __future__ import annotations
 import unittest
 
 from brandkit.measure import measure_html
-from tests.support import metrics_for, source_text, SOURCE_NAMES
+from tests.support import SOURCE_NAMES, metrics_for, source_text
 
 
 class TestMeasureRealSources(unittest.TestCase):

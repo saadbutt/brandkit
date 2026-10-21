@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import re
 from html.parser import HTMLParser
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from .registry import Registry, RegistryError
 
 _TREE_LINE = re.compile(r"^\s*(?:[-*]\s*)?([a-z0-9]+(?:-[a-z0-9]+)*)\s*(?:x\s*(\d+))?\s*$")
 _ROOT_BLOCK = re.compile(
-    r"<style\s+data-brandkit=\"kit\"\s*>.*?</style>\s*", re.S | re.I
+    r"<style\s+data-brandkit=\"kit\"\s*>.*?</style>\s*", re.DOTALL | re.IGNORECASE
 )
 
 
@@ -23,9 +23,9 @@ class BindError(ValueError):
     """Raised when a skeleton and the registry disagree."""
 
 
-def parse_tree(text: str) -> List[str]:
+def parse_tree(text: str) -> list[str]:
     """Read TREE.md into an ordered block list, expanding `id x3` repeats."""
-    tree: List[str] = []
+    tree: list[str] = []
     for raw in text.splitlines():
         line = raw.strip()
         if not line or line.startswith("#") or line.startswith("|"):
@@ -45,8 +45,8 @@ class _BlockAudit(HTMLParser):
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self.blocks: List[str] = []
-        self.slots: List[Tuple[str, str]] = []
+        self.blocks: list[str] = []
+        self.slots: list[tuple[str, str]] = []
         self._current: str = ""
 
     def handle_starttag(self, tag, attrs):
@@ -58,13 +58,13 @@ class _BlockAudit(HTMLParser):
             self.slots.append((self._current, a["data-slot"]))
 
 
-def audit_skeleton(html: str) -> Tuple[List[str], List[Tuple[str, str]]]:
+def audit_skeleton(html: str) -> tuple[list[str], list[tuple[str, str]]]:
     parser = _BlockAudit()
     parser.feed(html)
     return parser.blocks, parser.slots
 
 
-def check(html: str, tree: List[str], registry: Registry) -> None:
+def check(html: str, tree: list[str], registry: Registry) -> None:
     """Fail loudly when the skeleton, the tree and the registry disagree.
 
     An unknown id on a new skeleton is a registry gap: register it, then bind.
@@ -89,7 +89,7 @@ def check(html: str, tree: List[str], registry: Registry) -> None:
             raise BindError(f"{block_id}: slot {slot!r} is not in the registry entry")
 
 
-def bind(html: str, kit: Dict[str, Any], tree: List[str], registry: Registry,
+def bind(html: str, kit: dict[str, Any], tree: list[str], registry: Registry,
          css: str) -> str:
     """Return the skeleton restyled by the kit. Layout stays, theme and copy change."""
     check(html, tree, registry)
@@ -101,7 +101,7 @@ def bind(html: str, kit: Dict[str, Any], tree: List[str], registry: Registry,
     else:
         out = style + out
 
-    counters: Dict[str, int] = {}
+    counters: dict[str, int] = {}
     return _fill_slots(out, kit, counters)
 
 
@@ -109,14 +109,14 @@ _SLOT_TAG = re.compile(
     r'(<(?P<tag>[a-zA-Z0-9]+)(?P<attrs>[^>]*?data-slot="(?P<slot>[a-z0-9]+)"[^>]*)>)'
     r'(?P<body>.*?)'
     r'(</(?P=tag)>)',
-    re.S,
+    re.DOTALL,
 )
 
 
-def _fill_slots(html: str, kit: Dict[str, Any], counters: Dict[str, int]) -> str:
+def _fill_slots(html: str, kit: dict[str, Any], counters: dict[str, int]) -> str:
     copy = kit["copy"]
 
-    def replace(match: "re.Match[str]") -> str:
+    def replace(match: re.Match[str]) -> str:
         slot = match.group("slot")
         values = copy.get(slot, [])
         if not values:
