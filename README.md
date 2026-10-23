@@ -1,5 +1,7 @@
 # brandkit
 
+[![CI](https://github.com/saadbutt/brandkit/actions/workflows/ci.yml/badge.svg)](https://github.com/saadbutt/brandkit/actions/workflows/ci.yml)
+
 Point it at a brand's existing page. It measures what is actually there, asks a
 model to assign roles and write copy, and emits one kit that every artefact
 reads: `kit.json`, `kit.css`, `tokens.csv`, a restyled `index.html` per
