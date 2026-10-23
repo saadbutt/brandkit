@@ -18,6 +18,54 @@ identical
 
 Python 3.9 or newer. No dependencies, not even for the tests.
 
+## Tech stack
+
+- **Language:** Python 3.9–3.13, no dependencies, not even for the tests
+- **Model interface:** one `Protocol` (`ModelAdapter`); two offline stubs for
+  the test suite, one real OpenAI-compatible adapter via stdlib `urllib`
+- **CI:** GitHub Actions — ruff, the full suite across all five supported
+  Python versions, the determinism check, and the reproducible-build check
+
+## Measurable results
+
+- **106 tests**, no dependencies, under a second — see [Tests](#tests)
+- **0 lint findings** — `ruff check .`
+- **Byte-identical kits across models**, verified above and asserted in CI
+  on every example source, not just the one shown
+- **Invented values never land**: a stub model that tries to inject an
+  unmeasured hex, typeface, size, radius and spacing value is in the suite,
+  and `test_assemble.py` asserts none of it reaches the kit
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Source["Source HTML\n(a brand's existing page)"] --> Measure["measure.py\nObserve: facts only, no model"]
+    Measure --> Assemble["assemble.py\nAssemble: model drafts,\ncloses schema against measured facts"]
+    Assemble --> Kit["kit (dict)\nthe one source of truth"]
+    Kit --> Render["render.py\nApply: kit.json, kit.css,\ntokens.csv, DESIGN.md"]
+    Kit --> Bind["binder.py\nApply: kit onto a skeleton's\nTREE.md + registry"]
+    Bind --> Output["index.html per skeleton,\nactually restyled"]
+```
+
+Nothing downstream reads another artefact. `DESIGN.md` is rendered from the
+kit, not parsed back from `kit.css`, so the two cannot drift against each
+other — they're two views of the same dict.
+
+## Demo output
+
+![A restyled landing page: blue-gray background, dark navy headline text, a teal call-to-action button with rounded corners](examples/demo-screenshot.png)
+
+This is `examples/source-northwind.html` run through `build`, its skeleton
+opened in a real browser — not a mockup. Until this pass it wasn't: the
+skeletons had no CSS rules consuming the tokens `kit.css` writes to `:root`,
+so every `build` output actually rendered as unstyled default HTML despite
+the kit itself being computed correctly. Each of the three skeletons now
+carries a small stylesheet (`[data-slot="..."]` selectors reading the same
+`var(--paper)`, `var(--primary)`, etc. tokens) so what you see above is what
+`build` actually produces, confirmed across all three skeletons before this
+was committed.
+
 ## Run it
 
 ```
