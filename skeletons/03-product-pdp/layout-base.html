@@ -3,6 +3,85 @@
 <head>
 <meta charset="utf-8">
 <title>Product PDP</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-family: var(--body-font), sans-serif;
+  font-size: var(--size-body);
+  line-height: 1.5;
+}
+[data-block] {
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--hairline);
+}
+footer[data-block] {
+  background: var(--footer);
+  color: var(--paper);
+  border-bottom: none;
+}
+nav[data-block] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--paper-warm);
+}
+h1[data-slot="h1"] {
+  font-family: var(--heading-font), sans-serif;
+  font-size: var(--size-display);
+  color: var(--ink);
+  margin: var(--space-0);
+}
+h2[data-slot="h2s"] {
+  font-family: var(--heading-font), sans-serif;
+  font-size: var(--size-heading-md);
+  color: var(--ink);
+  margin: var(--space-0);
+}
+[data-slot="leads"] {
+  font-size: var(--size-subtitle);
+  color: var(--ink-soft);
+}
+[data-slot="bodies"] {
+  font-size: var(--size-body);
+  color: var(--ink-soft);
+}
+[data-slot="helpers"] {
+  font-size: var(--size-meta);
+  color: var(--ash);
+}
+footer [data-slot="helpers"] {
+  color: var(--paper-warm);
+}
+[data-slot="wordmark"] {
+  font-family: var(--heading-font), sans-serif;
+  font-weight: 700;
+  font-size: var(--size-heading-sm);
+  color: var(--ink);
+}
+[data-slot="links"] {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+button[data-slot="ctas"] {
+  font-family: var(--body-font), sans-serif;
+  font-size: var(--size-button);
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: var(--radius-cta);
+  padding: var(--space-3);
+  cursor: pointer;
+}
+label[data-slot="fields"] {
+  display: block;
+  font-size: var(--size-meta);
+  color: var(--ink-soft);
+}
+</style>
 </head>
 <body>
 <nav data-block="nav-bar"><span data-slot="wordmark">Brand</span></nav>
